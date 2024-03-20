@@ -20,13 +20,15 @@ Visualizer::Visualizer(QWidget* parent, const QGLWidget* shareWidget, Qt::Window
   prgDrawMesh_.link();
 
   // sun comes roughly from above...
-  prgDrawMesh_.setUniform(glow::GlUniform<glow::vec4>("lights[0].position", glow::vec4(0, 0, -1, 0)));
+  prgDrawMesh_.setUniform(glow::GlUniform<glow::vec4>("lights[0].position", glow::vec4(0, 0, -0.01, 0)));
+  // prgDrawMesh_.setUniform(glow::GlUniform<glow::vec4>("lights[0].position", glow::vec4(0, 0, -1, 0)));
   prgDrawMesh_.setUniform(glow::GlUniform<glow::vec3>("lights[0].ambient", glow::vec3(.9, .9, .9)));
   prgDrawMesh_.setUniform(glow::GlUniform<glow::vec3>("lights[0].diffuse", glow::vec3(.9, .9, .9)));
   prgDrawMesh_.setUniform(glow::GlUniform<glow::vec3>("lights[0].specular", glow::vec3(.9, .9, .9)));
 
   // more evenly distributed sun light...
-  std::vector<glow::vec4> dirs = {glow::vec4(1, -1, 1, 0), glow::vec4(-1, -1, 1, 0), glow::vec4(1, -1, -1, 0), glow::vec4(-1, -1, -1, 0)};
+  // std::vector<glow::vec4> dirs = {glow::vec4(1, -1, 1, 0), glow::vec4(-1, -1, 1, 0), glow::vec4(1, -1, -1, 0), glow::vec4(-1, -1, -1, 0)};
+  std::vector<glow::vec4> dirs = {glow::vec4(0.01, -0.01, 0.01, 0), glow::vec4(-0.01, -0.01, 0.01, 0), glow::vec4(0.01, -0.01, -0.01, 0), glow::vec4(-0.01, -0.01, -0.01, 0)};
   glow::vec3 indirect_intensity = glow::vec3(.1, .1, .1);
 
   for (uint32_t i = 0; i < 4; ++i) {
@@ -79,7 +81,7 @@ Visualizer::Visualizer(QWidget* parent, const QGLWidget* shareWidget, Qt::Window
                                 "visualizer/shaders/render_points.frag"));
   renderPoints_.link();
 
-  renderPoints_.setUniform(glow::GlUniform<int32_t>("texOutput", 0));  // set to texture 0.
+  renderPoints_.setUniform(glow::GlUniform<int32_t>("texOutput", 1));  // set to texture 0.
 
   sampler_.setMagnifyingOperation(glow::TexMagOp::NEAREST);
   sampler_.setMinifyingOperation(glow::TexMinOp::NEAREST);
@@ -237,10 +239,11 @@ void Visualizer::paintGL() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glClearColor(bg_color_[0], bg_color_[1], bg_color_[2], 1.0f);
   view_ = camera_.matrix();
-  //gl to model coordinates change
-  view_ = view_ * glow::glRotateZ(M_PI);
-  //gl to ScanNet dataset coordinates change
-  // view_ = view_ * glow::glRotateX(-M_PI/2);
+  // granite conversion view
+  // view_ = view_ * glow::glRotateZ(M_PI);
+  // iss conversion view
+  view_ = view_ * glow::glRotateY(-M_PI/2);
+  view_ = view_ * glow::glRotateX(-M_PI/2);
   mvp_ = projection_ * view_ * model_;
   if (show_axis_) {
     glow::ScopedBinder<glow::GlVertexArray> vao_binder(coordAxisVAO_);

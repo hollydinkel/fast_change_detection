@@ -6,6 +6,7 @@
 #include "fastcd/change_detector.h"
 #include "visualizer/visualizer.h"
 #include "utils/obj_reader.h"
+#include <cstdlib> 
 
 struct Dataset {
   bool loaded = false;
@@ -13,7 +14,7 @@ struct Dataset {
   std::vector<fastcd::Image> images;
 };
 
-Dataset LoadDataset(char *path, int n_images) {
+Dataset LoadDataset(char *path, int start_image_id, int n_images) {
   Dataset data;
   std::ostringstream filename;
   if (path[strlen(path) - 1] != '/') {
@@ -34,7 +35,8 @@ Dataset LoadDataset(char *path, int n_images) {
   std::cout << "Done." << std::endl;
 
   std::cout << "Loading images... " << std::flush;
-  for (int i = 0; i < n_images; i++) {
+  for (int i = start_image_id; i < start_image_id + n_images; i++) {
+    std::cout << "Image ID: " << i << std::endl;
     fastcd::Camera cam;
     filename.str("");
     filename.clear();
@@ -62,8 +64,8 @@ Dataset LoadDataset(char *path, int n_images) {
 }
 
 int main(int argc, char **argv) {
-  if (argc < 2) {
-    std::cout << "Usage: fastcd_example DATASET_PATH" << std::endl;
+  if (argc < 5) {
+    std::cout << "Usage: fastcd_example DATASET_PATH IMAGE_START" << std::endl;
     return -1;
   }
 
@@ -71,14 +73,19 @@ int main(int argc, char **argv) {
   QApplication app(argc, argv);
   fastcd::Visualizer visualizer;
 
+  int start_image_id = std::atoi(argv[2]);
+  int num_images = std::atoi(argv[3]);
+  std::cout << "Start ID: " << start_image_id << std::endl;
+  std::cout << "Num images: " << num_images << std::endl;
+
   // Load data
-  Dataset data = LoadDataset(argv[1], 5);
+  Dataset data = LoadDataset(argv[1], start_image_id, num_images);
   if (!data.loaded) return -1;
 
   // Initialize Change Detector
   fastcd::ChangeDetector::ChangeDetectorOptions cd_opts;
   cd_opts.cache_size = 10;
-  cd_opts.max_comparisons = 4;
+  cd_opts.max_comparisons = std::atoi(argv[4]);
   cd_opts.threshold_change_area = 50;
   cd_opts.rescale_width = 500;
   cd_opts.chi_square2d = 3.219;
@@ -88,7 +95,7 @@ int main(int argc, char **argv) {
   // Add the images to the sequence. Each new image is compared with the others
   // and the inconsistencies are updated.
   for (auto &img : data.images) {
-    change_detector.AddImage(img, 3);
+    change_detector.AddImage(img, cd_opts.max_comparisons);
   }
 
   // Compute and get the changes in the environment in the form of mean position
