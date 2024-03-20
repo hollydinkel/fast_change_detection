@@ -27,7 +27,7 @@ class Visualizer : public QGLWidget {
   /**
    * @brief      Constructor.
    */
-  Visualizer(QWidget* parent = 0, const QGLWidget* shareWidget = 0,
+  Visualizer(const std::string& environment, QWidget* parent = 0, const QGLWidget* shareWidget = 0,
          Qt::WindowFlags f = 0);
 
   /**
@@ -35,6 +35,9 @@ class Visualizer : public QGLWidget {
    *
    * @param      mesh  The mesh
    */
+
+  void setEnvironment(const std::string& environment);
+
   void addMesh(Mesh& mesh);
 
   /**
@@ -99,11 +102,12 @@ class Visualizer : public QGLWidget {
   void ShowAxis(bool option);
 
  protected:
+
   bool initContext();
 
   void initializeGL();
   void resizeGL(int w, int h);
-  void paintGL();
+  void paintGL() override;
 
   void mousePressEvent(QMouseEvent* event);
   void mouseReleaseEvent(QMouseEvent* event);
@@ -153,6 +157,10 @@ class Visualizer : public QGLWidget {
   std::vector<Camera> cameras_;
 
   bool show_axis_{true};
+
+private:
+    std::string environment_;
+
 };
 
 }  // namespace fastcd

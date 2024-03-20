@@ -64,19 +64,22 @@ Dataset LoadDataset(char *path, int start_image_id, int n_images) {
 }
 
 int main(int argc, char **argv) {
-  if (argc < 5) {
-    std::cout << "Usage: fastcd_example DATASET_PATH IMAGE_START" << std::endl;
+  if (argc < 6) {
+    std::cout << "Usage: fastcd_example DATASET_PATH IMAGE_START NUM_IMAGES MAX_COMPARISONS ENVIRONMENT" << std::endl;
     return -1;
   }
 
-  // Initialize the viewer
-  QApplication app(argc, argv);
-  fastcd::Visualizer visualizer;
-
+  // Parse the arguments
   int start_image_id = std::atoi(argv[2]);
   int num_images = std::atoi(argv[3]);
+  std::string environment = argv[5];
   std::cout << "Start ID: " << start_image_id << std::endl;
   std::cout << "Num images: " << num_images << std::endl;
+  std::cout << "Environment: " << environment << std::endl;
+
+  // Initialize the viewer
+  QApplication app(argc, argv);
+  fastcd::Visualizer visualizer(environment);
 
   // Load data
   Dataset data = LoadDataset(argv[1], start_image_id, num_images);

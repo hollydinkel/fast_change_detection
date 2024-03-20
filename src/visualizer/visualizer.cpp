@@ -8,8 +8,8 @@
 
 namespace fastcd {
 
-Visualizer::Visualizer(QWidget* parent, const QGLWidget* shareWidget, Qt::WindowFlags f)
-    : QGLWidget(parent, shareWidget, f), contextInitialized_(initContext()) {
+Visualizer::Visualizer(const std::string& environment, QWidget* parent, const QGLWidget* shareWidget, Qt::WindowFlags f)
+    : QGLWidget(parent, shareWidget, f), environment_(environment), contextInitialized_(initContext()) {
   if (!contextInitialized_) throw std::runtime_error("OpenGL context initialization failed!");
   setFocusPolicy(Qt::StrongFocus);
   makeCurrent();
@@ -87,6 +87,10 @@ Visualizer::Visualizer(QWidget* parent, const QGLWidget* shareWidget, Qt::Window
   sampler_.setMinifyingOperation(glow::TexMinOp::NEAREST);
   sampler_.setWrapOperation(glow::TexWrapOp::CLAMP_TO_BORDER, glow::TexWrapOp::CLAMP_TO_BORDER);
   timer_.start(1. / 30.);
+}
+
+void Visualizer::setEnvironment(const std::string& environment) {
+    environment_ = environment;
 }
 
 float Visualizer::rgb2float(float r, float g, float b) {
@@ -239,11 +243,15 @@ void Visualizer::paintGL() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glClearColor(bg_color_[0], bg_color_[1], bg_color_[2], 1.0f);
   view_ = camera_.matrix();
-  // granite conversion view
-  // view_ = view_ * glow::glRotateZ(M_PI);
-  // iss conversion view
-  view_ = view_ * glow::glRotateY(-M_PI/2);
-  view_ = view_ * glow::glRotateX(-M_PI/2);
+  if (environment_ == "granite"){
+    view_ = view_ * glow::glRotateZ(M_PI);}
+  else if (environment_ == "iss"){
+    view_ = view_ * glow::glRotateY(-M_PI/2);
+    view_ = view_ * glow::glRotateX(-M_PI/2);
+  }
+  else{
+    view_ = view_ * glow::glRotateZ(M_PI);
+  }
   mvp_ = projection_ * view_ * model_;
   if (show_axis_) {
     glow::ScopedBinder<glow::GlVertexArray> vao_binder(coordAxisVAO_);
